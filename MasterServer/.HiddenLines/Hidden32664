@@ -1,0 +1,20 @@
+function Listen # Listening to user input
+{
+  # This function is called by the Main process loads variables for the Main process only...
+  if [[ ! -f $ConfigFile ]]
+  then
+    Message "$ConfigFile file does not exist... Aborting!" E L
+    exit
+  else
+    Order=$(grep "Order" "$ConfigFile" | awk '{ print $2 }')
+    ThreadLimit=$(grep "ThreadLimit" "$ConfigFile" | awk '{ print $2 }')
+    BatchSize=$(grep "BatchSize" "$ConfigFile" | awk '{ print $2 }')
+  fi
+  if [[ $ThreadLimit -gt $ThreadCount ]]
+  then
+    ThreadNumber=$ThreadCount
+    Message "Thread limit ignored! Your CPU only has $ThreadCount threads!" W L
+  else
+    ThreadNumber=$ThreadLimit
+  fi
+}

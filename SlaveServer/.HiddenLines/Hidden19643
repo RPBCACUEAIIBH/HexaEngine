@@ -1,0 +1,36 @@
+function Thread # $1 - Number of thread
+{
+  while [[ $(grep "State" "$WDir/Thread$Thread" | awk '{ print $2 }') != "C" ]]
+  do
+    if [[ $(grep "State" "$WDir/Thread$Thread" | awk '{ print $2 }') == "R" ]]
+    then
+      DeepSleep[$1]=0
+      Y=""
+      X=1
+      while [[ $Y != "Done" ]]
+      do
+        if [[ -f "$WDir/T$1D$X" ]]
+        then
+          # Load data from "$WDir/T$1D$X"
+          # Process it (All threads can read a variable, but they shouldn't write anything to a common variable, the output should always be separate from all threads to avoid data corruption.)
+          echo -n "" > "$WDir/T$1D$X"
+          # Write results back to "$WDir/T$1D$X" Don't forget to attach the post processing order mark.
+        else
+          Y="Done"
+        fi
+        X=$(( $X + 1 ))
+      done
+      echo "State I" > "$WDir/Thread$1"
+    else
+      if [[ ${DeepSleep[$1]} -lt $(grep "SleepAfter" "$ConfigFile" | awk '{ print $2 }') ]] # Deep sleep means only checking for job less often
+      then
+        DeepSleep[$1]=$(( ${DeepSleep[$1]} + 1 ))
+        sleep $(grep "FeedFrequency" "$ConfigFile" | awk '{ print $2 }')
+      else
+        Message "Thread$1 is sleeping..." I L
+        sleep $(grep "SleepFor" "$ConfigFile" | awk '{ print $2 }')
+      fi
+    fi
+  done
+  echo "State Offline" > "$WDir/Thread$1"
+}

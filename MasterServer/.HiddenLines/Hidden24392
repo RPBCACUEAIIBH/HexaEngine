@@ -1,0 +1,30 @@
+T2=$(date -Ins)
+Message "Main process exiting!" I L
+# Here you can calculate runtime, summary of what's done, maybe percentage if the operation was not entirely finished, etc.
+Message "Saving game data! Please wait..." I L
+for i in $(seq $(($NumBackups - 1 )))
+do
+  x=$(( 5 - $i ))
+  if [[ -e "$GameData.old$x" ]]
+  then
+    if [[ $(( $x + 1 )) == $NumBackups && -e "$GameData.old$(( $x + 1 ))" ]]
+    then
+      rm -f ../GameData.tar.gz.old5
+    fi
+    mv "$GameData.old$x" "$GameData.old$(( $x + 1 ))"
+  fi
+done
+if [[ -e "$GameData" ]]
+then
+  mv "$GameData" "$GameData.old1"
+fi
+tar -cpzf "$GameData" "./GameData"
+Message "Done!" I L
+cd $OwnDir
+cp "$LogFile" "$OwnDir/LastRun.log"
+echo "Offline" > "$OwnDir/Feedback"
+if [[ ! -z $(df | grep $WDir) ]]
+then
+  umount $WDir
+fi
+rm -Rf $WDir

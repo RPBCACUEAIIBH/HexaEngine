@@ -1,0 +1,37 @@
+Output=""
+while [[ ! -z $@ ]]
+do
+  case $1
+  in
+           "--help" ) echo "--silent            Only outputs to the log file."
+                      echo "--help              Shows this help."
+                      echo ""
+                      echo ""
+                      exit
+                      ;;
+         "--silent" ) Output="Silent"
+                      ;;
+                   *) echo "Error: Unknown option $1!"
+                      exit
+                      ;;
+  esac
+  shift
+done
+
+# Creating or clearing $LogFile
+if [[ ! -f "$LogFile" ]]
+then
+  touch "$LogFile"
+fi
+echo -n "" > "$LogFile"
+Message "Beggining log" I L
+# Root check
+Message "Running as: $(whoami)" I L
+if [[ $(whoami) == "root" ]]
+then
+  Message "Setting higher process priority for improved efficiency!" I L
+  renice -10 -p $BASHPID
+else
+  Message "Try with sudo..." E
+  exit
+fi

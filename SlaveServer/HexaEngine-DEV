@@ -1,0 +1,83 @@
+#! /bin/bash
+
+### Instructions ###
+# The template should run as is, but it does nothing. Comments will tell you where to insert your code.
+# WDir should not exist it will be created, (if running as root ram will be mounted) and files copied there when the scipt runs, and it should normally be a location in RAM. This way it's faster to read/write files, and does not hurt solid state drive either... The point is if you're calling another script, WDir should be passed as a variable to it if it has anything to do with data in WDir.
+# Threads can read the same variables/input files, but they must only write their own output files, and variables to avoid interference, and data corruption.
+
+### Finding roots ###
+# 4 line(s) hiddebn by BashTool! Marker: 9355 Your notes: Finding roots
+
+### Variables ###
+# 5 line(s) hiddebn by BashTool! Marker: 29739 Your notes: Variables
+
+### Functions ###
+# 27 line(s) hiddebn by BashTool! Marker: 11319 Your notes: Function "Message"
+
+
+# 20 line(s) hiddebn by BashTool! Marker: 32664 Your notes: Function "Listen"
+
+# 16 line(s) hiddebn by BashTool! Marker: 14956 Your notes: function "Unload"
+
+# 12 line(s) hiddebn by BashTool! Marker: 17037 Your notes: Function "Feed"
+
+# 36 line(s) hiddebn by BashTool! Marker: 19643 Your notes: Function "Thread"
+
+### Initialization ###
+# 37 line(s) hiddebn by BashTool! Marker: 511 Your notes: Options, Log file, Root check
+# 15 line(s) hiddebn by BashTool! Marker: 15903 Your notes: Initial Variables
+# 46 line(s) hiddebn by BashTool! Marker: 18654 Your notes: Work Directory, Mounting RAM, etc.
+# Preparing threads
+for Thread in $(seq $ThreadCount) # Maximum number of threads must be created even if the limit is lower for the flexibility of activating/deactivating them later
+do
+  Message "Creating Thread $Thread!" I L
+  touch "$WDir/Thread$Thread"
+  echo "State: I" >> "$WDir/Thread$Thread"
+  DeepSleep[$Thread]=0
+  Thread $Thread& # These threads should not be closed, they sleep until they are fed data and their status is set to R. They will exit with the main process.
+done
+### Execution ###
+T1=$(date -Ins)
+Message "Done preparing at: $T1" I L
+# Here's the place for initial operations.
+
+while [[ $Order != "Stop" ]]
+do
+  if [[ $Order == "Run" && ${DeepSleep[0]} -ge $(grep "SleepAfter" "$ConfigFile" | awk '{ print $2 }') ]]
+  then
+    Message "Main process active!" I L
+  fi
+  for Thread in $(seq $ThreadNumber)
+  do
+    if [[ $(grep "State" "$WDir/Thread$Thread" | awk '{ print $2 }') == "I" && $Order == "Run" ]]
+    then
+      Unload $Thread
+      Feed $Thread
+      if [[ ${DeepSleep[$Thread]} -ge $(grep "SleepAfter" "$ConfigFile" | awk '{ print $2 }') ]] # If it has been paused it must wake the threads
+      then
+        DeepSleep[$Thread]=0
+        Message "Waking Thread$Thread..." I L
+      fi
+    fi
+  done
+  if [[ $Order == "Run" ]] # Main process should not go into deep sleep if $Order == "Run"
+  then
+    DeepSleep[0]=0
+  fi
+  # You can post process on the fly here, however it may delay threads(unless 1 thread is reserved for post processign on the fly by limiting the threads to ThreadLimit - 1 in the Listen function), and also may not be in the correct order... You may wanna make this step a function, cause you will need to execute this step below, after stopping all threads otherwise data from the last running threads may be lost if Order is set to "Stop". I'd still recommend the entire post processing after all threads ware stopped.
+  if [[ ${DeepSleep[0]} -lt $(grep "SleepAfter" "$ConfigFile" | awk '{ print $2 }') ]]
+  then
+    DeepSleep[0]=$(( ${DeepSleep[0]} + 1 ))
+    sleep $(grep "FeedFrequency" "$ConfigFile" | awk '{ print $2 }')
+  else
+    Message "Main process is sleeping..." I L
+    sleep $(grep "SleepFor" "$ConfigFile" | awk '{ print $2 }')
+  fi
+  Listen
+done
+
+# Waiting for all threads to finish
+# 29 line(s) hiddebn by BashTool! Marker: 26884 Your notes: Waiting for processes
+
+### Finishing ###
+# 10 line(s) hiddebn by BashTool! Marker: 28693 Your notes: Ending

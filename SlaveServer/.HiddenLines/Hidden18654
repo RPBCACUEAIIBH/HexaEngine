@@ -1,0 +1,46 @@
+# WDir
+WDir="$OwnDir/Memory"
+Message "Preparing WDir! ($WDir)" I L
+if [[ -d "$WDir" ]]
+then
+  if [[ ! -z $(df | grep $WDir) ]]
+  then
+    umount $WDir
+  fi
+  rm -Rf "$Wdir"
+fi
+if [[ ! -d "$WDir" ]]
+then
+  mkdir $WDir
+fi
+if [[ ! -d "$WDir" ]]
+then
+  Message "Work direcotry couldn not be created at $WDir Aborting!" E L
+  exit
+else
+  if [[ $AMem -gt $MSize ]]
+  then
+    Message "Mounting $(( $MSize / 1024 )) MiB RAM to $WDir" I L
+    mount -t tmpfs -o rw,noatime,nodiratime,size=$(( $MSize * 1024 )) tmpfs "$WDir"
+  else
+    # You may want aborting execution by default without asking in case there is not enough memory...
+    Message "Not enough available memory! Should the script try running with available memory?" W L
+    read -t 15 -p "There is only $(( $AMem / 1024 )) MiB available memory. The config file specifies: $(( $MSize / 1024 )) MiB. Should the script try running with the available memory? (Running out of memory can cause malfunction, crash or slow operation in case you have swap space. y/n)" Yy
+    Message "Response: $Yy" I L
+    if [[ $Yy != [Yy]* ]]
+    then
+      Message "Aborting..." I L
+      rm -Rf $WDir
+      exit
+    else
+      MSize=$(cat "/proc/meminfo" | grep "MemAvailable" | awk '{ print $2 }')
+      Message "Mounting $(( $MSize / 1024 )) MiB RAM to $WDir" I L
+      mount -t tmpfs -o rw,noatime,nodiratime,size=$(( $MSize * 1024 )) tmpfs "$WDir"
+    fi
+  fi
+  cp -a "$ConfigFile" "$WDir/MTConfig.conf"
+  ConfigFile="$WDir/MTConfig.conf"
+  echo "$ConfigFile" > "$OwnDir/Feedback"
+  cp "$LogFile" "$WDir/LastRun.log"
+  LogFile="$WDir/LastRun.log"
+fi

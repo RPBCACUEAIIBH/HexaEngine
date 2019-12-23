@@ -1,0 +1,27 @@
+function Message # $2 => "message"; $2 => E/W/I (Message Level: Error/Warning/Info); $3 => L (Optional flag: Add message to logfile)
+{
+  Level=""
+  case $2
+  in
+                 [Ee]* ) Level="Error:"
+                      ;;
+                 [Ww]* ) Level="Warning:"
+                      ;;
+                   *) Level="Info:"
+                      ;;
+  esac
+  if [[ $Output == "Silent" ]]
+  then
+    if [[ $3 == [Ll]* ]]
+    then
+      echo "$(date -Iseconds) $Level $1" >> "$LogFile"
+    fi
+  else
+    if [[ $3 == [Ll]* ]]
+    then
+      echo "$(date -Iseconds) $Level $1" | tee -a "$LogFile"
+    else
+      echo "$(date -Iseconds) $Level $1"
+    fi
+  fi
+}

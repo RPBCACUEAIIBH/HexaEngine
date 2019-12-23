@@ -1,0 +1,28 @@
+# Unpack game data
+Message "Loading! Please wait..." I L
+cd $WDir
+if [[ -e "$GameData" ]]
+then
+  tar -xpzf "$GameData"
+else
+  Message "Game data not found!" W L
+  for i in $(seq $NumBackups)
+  do
+    if [[ $i > 1 ]]
+    then
+      Message "Backup $(( $i - 1 )) not found!" W L
+      if [[ $i == $NumBackups && ! -e "$GameData.old$i" ]]
+      then
+        Message "No backup found! Aborting..." E L
+        exit
+      fi
+    fi
+    if [[ -e "$GameData.old$i" ]]
+    then
+      Message "Extracting backup $i!" W L
+      tar -xpzf "$GameData.old$i"
+      break
+    fi
+  done
+fi
+Message "The game is ready!" I L

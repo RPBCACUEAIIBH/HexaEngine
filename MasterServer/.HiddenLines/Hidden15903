@@ -1,0 +1,15 @@
+# Loading variables
+X=$(lscpu | grep 'CPU(s):' | awk '{ print $2 }')
+ThreadCount=$(echo $X | awk '{ print $1 }')
+AMem=$(cat "/proc/meminfo" | grep "MemAvailable" | awk '{ print $2 }')
+MSize=$(( $(grep "MSize" $ConfigFile | awk '{ print $2 }') * 1024 )) # The available memory is in KiB, MSize should also be in KiB (This can't change on the fly...)
+Message "Thread(s) detected: $ThreadCount" I L
+Message "Available memory: $(( $AMem / 1024 )) MiB" I L
+Message "Assigned memory: $(( $MSize / 1024 )) MiB" I L
+Listen # Initialization of values from config file...
+Message "Initial Order: $Order" I L
+Message "Thread limit: $ThreadLimit" I L
+Message "Feed frequency: $(grep "FeedFrequency" "$ConfigFile" | awk '{ print $2 }')" I L
+Message "Batch size: $BatchSize" I L
+Message "Sleeping after: $(grep "SleepAfter" "$ConfigFile" | awk '{ print $2 }')" I L
+Message "Sleeping for: $(grep "SleepFor" "$ConfigFile" | awk '{ print $2 }')" I L
