@@ -1,3 +1,4 @@
+### Initialization ###
 Output=""
 while [[ ! -z $@ ]]
 do
@@ -17,21 +18,3 @@ do
   esac
   shift
 done
-
-# Creating or clearing $LogFile
-if [[ ! -f "$LogFile" ]]
-then
-  touch "$LogFile"
-fi
-echo -n "" > "$LogFile"
-Message "Beggining log" I L
-# Root check
-Message "Running as: $(whoami)" I L
-if [[ $(whoami) == "root" ]]
-then
-  Message "Setting higher process priority for improved efficiency!" I L
-  renice -10 -p $BASHPID
-else
-  Message "Try with sudo..." E
-  exit
-fi

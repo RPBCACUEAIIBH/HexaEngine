@@ -1,0 +1,9 @@
+# Preparing threads
+for Thread in $(seq $ThreadCount) # Maximum number of threads must be created even if the limit is lower for the flexibility of activating/deactivating them later
+do
+  Message "Creating Thread $Thread!" I L
+  touch "$WDir/Thread$Thread"
+  echo "State: I" >> "$WDir/Thread$Thread"
+  DeepSleep[$Thread]=0
+  Thread $Thread& # These threads should not be closed, they sleep until they are fed data and their status is set to R. They will exit with the main process.
+done

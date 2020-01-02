@@ -9,34 +9,26 @@
 # 4 line(s) hiddebn by BashTool! Marker: 9355 Your notes: Finding roots
 
 ### Variables ###
-# 7 line(s) hiddebn by BashTool! Marker: 5138 Your notes: Variables
+# 7 line(s) hiddebn by BashTool! Marker: 141 Your notes: Variables
 
 ### Functions ###
 # 27 line(s) hiddebn by BashTool! Marker: 11319 Your notes: Function "Message"
 
+# 23 line(s) hiddebn by BashTool! Marker: 32489 Your notes: Function "Listen"
 
-# 20 line(s) hiddebn by BashTool! Marker: 32664 Your notes: Function "Listen"
+# 22 line(s) hiddebn by BashTool! Marker: 3451 Your notes: Function "Unload"
 
-# 16 line(s) hiddebn by BashTool! Marker: 14956 Your notes: function "Unload"
+# 18 line(s) hiddebn by BashTool! Marker: 5830 Your notes: Function "Feed"
 
-# 12 line(s) hiddebn by BashTool! Marker: 17037 Your notes: Function "Feed"
-
-# 36 line(s) hiddebn by BashTool! Marker: 19643 Your notes: Function "Thread"
+# 36 line(s) hiddebn by BashTool! Marker: 11528 Your notes: Function "Thread"
 
 ### Initialization ###
 # 37 line(s) hiddebn by BashTool! Marker: 511 Your notes: Options, Log file, Root check
 # 15 line(s) hiddebn by BashTool! Marker: 15903 Your notes: Initial Variables
 # 46 line(s) hiddebn by BashTool! Marker: 18654 Your notes: Work Directory, Mounting RAM, etc.
 # 28 line(s) hiddebn by BashTool! Marker: 31985 Your notes: Loading GameData
-# Preparing threads
-for Thread in $(seq $ThreadCount) # Maximum number of threads must be created even if the limit is lower for the flexibility of activating/deactivating them later
-do
-  Message "Creating Thread $Thread!" I L
-  touch "$WDir/Thread$Thread"
-  echo "State: I" >> "$WDir/Thread$Thread"
-  DeepSleep[$Thread]=0
-  Thread $Thread& # These threads should not be closed, they sleep until they are fed data and their status is set to R. They will exit with the main process.
-done
+# 9 line(s) hiddebn by BashTool! Marker: 12386 Your notes: Preparing threads
+touch $WDir/VThreadDummy
 ### Execution ###
 T1=$(date -Ins)
 Message "Done preparing at: $T1" I L
@@ -48,7 +40,7 @@ do
   then
     Message "Main process active!" I L
   fi
-  for Thread in $(seq $ThreadNumber) #$(seq $(( $ThreadNumber + 1)) $VThreadNumber)
+  for Thread in $(seq $ThreadNumber)
   do
     if [[ $(grep "State" "$WDir/Thread$Thread" | awk '{ print $2 }') == "I" && $Order == "Run" ]]
     then
@@ -61,11 +53,30 @@ do
       fi
     fi
   done
+  for Thread in $(ls "$WDir/VThread"*) # << This will only work with path without special characters and/or spaces
+  do
+    if [[ -f $Thread && $Thread != "$WDir/VThreadDummy" ]] # VThreadDummy keeps it from throwing lots of errors when no VThread connected...
+    then
+      if [[ $(grep "State" "$Thread" | awk '{ print $2 }') == "S" ]]
+      then
+        Unload $Thread
+        sed -i 's/State: S/State: D/g' $Thread
+      else
+        if [[ $(grep "State" $Thread | awk '{ print $2 }') == "I" && $Order == "Run" ]]
+        then
+          Unload $Thread
+          Feed $Thread
+        fi
+      fi
+    fi
+  done
   if [[ $Order == "Run" ]] # Main process should not go into deep sleep if $Order == "Run"
   then
     DeepSleep[0]=0
   fi
-  # You can post process on the fly here, however it may delay threads(unless 1 thread is reserved for post processign on the fly by limiting the threads to ThreadLimit - 1 in the Listen function), and also may not be in the correct order... You may wanna make this step a function, cause you will need to execute this step below, after stopping all threads otherwise data from the last running threads may be lost if Order is set to "Stop". I'd still recommend the entire post processing after all threads ware stopped.
+  ### Data Syncing ###
+  # Processing here if all the batches of the task has been completed and no new process started yet...
+
   if [[ ${DeepSleep[0]} -lt $(grep "SleepAfter" "$ConfigFile" | awk '{ print $2 }') ]]
   then
     DeepSleep[0]=$(( ${DeepSleep[0]} + 1 ))
@@ -77,8 +88,7 @@ do
   Listen
 done
 
-# Waiting for all threads to finish
-# 29 line(s) hiddebn by BashTool! Marker: 26884 Your notes: Waiting for processes
+# 55 line(s) hiddebn by BashTool! Marker: 13883 Your notes: Waitng for threads to finish, unloading, etc.
 
 ### Finishing ###
 # 30 line(s) hiddebn by BashTool! Marker: 24392 Your notes: Making backup, Compressing GameData and Ending

@@ -14,6 +14,9 @@ function Listen # Listening to user input
   then
     ThreadNumber=$ThreadCount
     Message "Thread limit ignored! Your CPU only has $ThreadCount threads!" W L
+  elif [[ $ThreadLimit == 0 ]]
+  then
+    ThreadNumber=$ThreadCount
   else
     ThreadNumber=$ThreadLimit
   fi

@@ -1,3 +1,4 @@
+### Variables ###
 LogFile="$OwnDir/LastRun.log"
 ConfigFile="$OwnDir/MTConfig.conf" # This file will be copied into WDir when it's created, and that copy will be used further on for the fastest possible operation. The location will be placed in the $OwnDir/Feedback file. Your interface can read that file, and thus find the config file.
 Order=""

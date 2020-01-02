@@ -1,3 +1,4 @@
+### Finding roots ###
 PWDir="$(pwd)"
 cd $(cd "$(dirname "$0")"; pwd -P)
 OwnDir="$(pwd)"

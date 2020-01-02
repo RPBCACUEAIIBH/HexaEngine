@@ -1,0 +1,18 @@
+function Feed # $1 - Number of thread
+{
+  if [[ $(echo "$@" | grep "VThread") ]]
+  then
+    Message "Feeding VThread: $@" I
+    Y="Done" # For now...
+  else
+    for i in $(seq $BatchSize)
+    do
+      touch "$WDir/T$1D$i"
+      # Prepare data necessary for the thread. Don't forget to mark the data to be able to post process it in the correct order... Threads may not finish in the correct order...
+      # save the data to "$WDir/T$1D$i" file(a file in a RAM drive for the fastest possible processing).
+      # Mark the piece "in progress".
+      :
+    done
+    echo "State R" > "$WDir/Thread$1"
+  fi
+}

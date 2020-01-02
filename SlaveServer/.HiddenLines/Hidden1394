@@ -1,3 +1,4 @@
+# Waiting for all threads to finish
 Wait=true
 Message "Waiting for threads to finish their job." I L
 while [[ $Wait == true ]]

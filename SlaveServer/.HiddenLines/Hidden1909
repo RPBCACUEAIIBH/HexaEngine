@@ -1,3 +1,4 @@
+### Finishing ###
 T2=$(date -Ins)
 Message "Main process exiting!" I L
 # Here you can calculate runtime, summary of what's done, maybe percentage if the operation was not entirely finished, etc.

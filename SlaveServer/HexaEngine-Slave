@@ -1,10 +1,5 @@
 #! /bin/bash
 
-### Instructions ###
-# The template should run as is, but it does nothing. Comments will tell you where to insert your code.
-# WDir should not exist it will be created, (if running as root ram will be mounted) and files copied there when the scipt runs, and it should normally be a location in RAM. This way it's faster to read/write files, and does not hurt solid state drive either... The point is if you're calling another script, WDir should be passed as a variable to it if it has anything to do with data in WDir.
-# Threads can read the same variables/input files, but they must only write their own output files, and variables to avoid interference, and data corruption.
-
 ### Finding roots ###
 PWDir="$(pwd)"
 cd $(cd "$(dirname "$0")"; pwd -P)
@@ -47,7 +42,6 @@ function Message # $2 => "message"; $2 => E/W/I (Message Level: Error/Warning/In
   fi
 }
 
-
 function Listen # Listening to user input
 {
   # This function is called by the Main process loads variables for the Main process only...
@@ -64,6 +58,9 @@ function Listen # Listening to user input
   then
     ThreadNumber=$ThreadCount
     Message "Thread limit ignored! Your CPU only has $ThreadCount threads!" W L
+  elif [[ $ThreadLimit == 0 ]]
+  then
+    ThreadNumber=$ThreadCount
   else
     ThreadNumber=$ThreadLimit
   fi

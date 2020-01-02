@@ -1,0 +1,22 @@
+function Unload
+{
+  Y=""
+  X=1
+  while [[ $Y != "Done" ]]
+  do
+    if [[ $(echo "$@" | grep "VThread") ]]
+    then
+      Message "Unloading Vthread: $@" I
+      Y="Done" # For now...
+    else
+      if [[ -f "$WDir/T$1D$X" ]]
+      then
+        cat "$WDir/T$1D$X" >> "$WDir/Results"
+        rm "$WDir/T$1D$X"
+      else
+        Y="Done"
+      fi
+    fi
+    X=$(( $X + 1 ))
+  done
+}

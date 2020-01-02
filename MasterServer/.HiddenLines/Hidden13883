@@ -1,0 +1,55 @@
+# Waiting for all threads to finish
+Wait=true
+Message "Waiting for threads to finish their job." I L
+while [[ $Wait == true ]]
+do
+  Wait=false
+  sleep 1
+  for Thread in $(seq $ThreadCount)
+  do
+    if [[ $(grep "State" "$WDir/Thread$Thread" | awk '{ print $2 }') == "R" ]]
+    then
+      Wait=true
+    else
+      if [[ $(grep "State" "$WDir/Thread$Thread" | awk '{ print $2 }') == "I" ]]
+      then
+        Unload $Thread
+        echo "State: C" > "$WDir/Thread$Thread"
+        Wait=true
+      else
+        if [[ $(grep "State" "$WDir/Thread$Thread" | awk '{ print $2 }') != "Offline" ]]
+        then
+          Message "Waiting for Thread$Thread to stop!" I L
+          Wait=true
+        else
+          Message "Thread$Thread is offline!" I L
+        fi
+      fi
+    fi
+  done
+  for Thread in $(ls "$WDir/VThread"*)
+  do
+    if [[ -f $Thread && $Thread != "$WDir/VThreadDummy" ]]
+    then
+      # VThreads should be deleted by the slave servers when they got the close command...
+      if [[ $(ls "$WDir/VThread"*) != "VThreadDummy" ]] # this checks if any other VThread present then the dummy...
+      then
+        Wait=true
+        if [[ $(grep "State" $Thread | awk '{ print $2 }') == "C" ]]
+        then
+          Message "Waiting for VThread $Thread to close..." I L
+        fi
+      fi
+      if [[ $(grep "State" $Thread | awk '{ print $2 }') == "I" ]]
+      then
+        Unload $Thread
+        sed -i 's/State: I/State: C/g' $Thread
+      fi
+      if [[ $(grep "State" $Thread | awk '{ print $2 }') == "S" ]]
+      then
+        Unload $Thread
+        sed -i 's/State: S/State: C/g' $Thread
+      fi
+    fi
+  done
+done
